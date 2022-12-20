@@ -24,13 +24,13 @@ play game:
 player determines whether they want to draw or pick up from the train.
 if they want to pick up from the train and have 0 points prompt laying down cards
 check if cards they have to lay down is greater than round point minimum, if yes lay down, else reprompt pick up from train or draw
-if points == 0
-<t>give opportunity to lay down</t>
-<t>give opportunity to add to sets</t>
-else:
-<t>give opportunity to add to sets</t>
-prompt discard
-change player
+<br>if points == 0
+<br><t>give opportunity to lay down</t>
+<br><t>give opportunity to add to sets</t>
+<br>else:
+<br><t>give opportunity to add to sets</t>
+<br>prompt discard
+<br>change player
 
 Sources:
 https://thecleverprogrammer.com/2020/10/04/card-game-with-python/
