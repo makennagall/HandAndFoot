@@ -1,6 +1,10 @@
 # HandAndFoot
 Implementation of the card game Hand and Foot
 
+NOTES:
+<br>need to figure out a way to keep track of what cards have been laid down in the round in order to implement undo
+<br>need to figure out how to do different rounds: potentially round class.
+
 <b>Card Class</b> contains a constructor and representation function. Each card has variables for the color of the card, the value of the card, and the number of points the card is worth.
 
 <b>Deck Class</b> contains a constructor and a function that removes a card from the deck. self.cards is a list of the cards in the deck.
@@ -16,7 +20,7 @@ lay down: checks if player has played cards of that type. takes in a list of set
 
 add to set: asks which set the player would like to add the card to. if the value matches then add card, else if the card is a wild card checks if there are not more wild cards than value cards. Updates point total.
 
-lay down new sets: checks to make sure value of cards in the list does not already exist. If it does, add cards to existing list. if not append to lay down list. 
+lay down new sets: checks to make sure value of cards in the list does not already exist. If it does, add cards to existing list. if not append to lay down list.
 
 discard: if player has the selected card in their hand (or foot) then remove it from their hand (or foot) and append it to the train list.
 
@@ -25,7 +29,7 @@ switch to foot: if hand set is empty, change footAccess to True.
 end game: if a set contains 7 cards that are only value cards and a set contains 7 cards including a wild card and len(foot) == 0: end game
 
 play game:
-NOTES: need to figure out a way to keep track of what cards have been laid down in the round
+
 <br>player determines whether they want to draw or pick up from the train.
 if they want to pick up from the train and have 0 points prompt laying down cards
 check if cards they have to lay down is greater than round point minimum, if yes lay down, else reprompt pick up from train or draw
