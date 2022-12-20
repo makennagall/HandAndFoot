@@ -12,7 +12,9 @@ draw: draws two cards and appends them to either the hand or foot depending on t
 
 take train: checks if the player has the two cards they claim, if the two cards are in the train, and if the player has laid down points. then it appends the train from that card down to the players hand or foot depending on the footAccess variable.
 
-lay down: takes in a list of sets that the player wants to lay down. removes cards from the hand or foot and adds it to the laid down cards list for that player. adds to the number of points the player has. Cannot lay down 3s. Must lay down 3 cards in each set. Sets must contain cards of the same value or wild cards. Wild cards cannot equal or out number value cards.
+lay down new set: checks if player has played cards of that type. takes in a list of sets that the player wants to lay down. removes cards from the hand or foot and adds it to the laid down cards list for that player. adds to the number of points the player has. Cannot lay down 3s. Must lay down 3 cards in each set. Sets must contain cards of the same value or wild cards. Wild cards cannot equal or out number value cards.
+
+add to set: asks which set the player would like to add the card to. if the value matches then add card, else if the card is a wild card checks if there are not more wild cards than value cards. Updates point total.
 
 discard: if player has the selected card in their hand (or foot) then remove it from their hand (or foot) and append it to the train list.
 
@@ -22,7 +24,11 @@ play game:
 player determines whether they want to draw or pick up from the train.
 if they want to pick up from the train and have 0 points prompt laying down cards
 check if cards they have to lay down is greater than round point minimum, if yes lay down, else reprompt pick up from train or draw
-give opportunity to lay down
+if points == 0
+<t>give opportunity to lay down</t>
+<t>give opportunity to add to sets</t>
+else:
+<t>give opportunity to add to sets</t>
 prompt discard
 change player
 
