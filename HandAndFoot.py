@@ -53,20 +53,22 @@ class Deck:
             #add the jokers to the deck:
             self.cards.append(Card(13,3,4))
             self.cards.append(Card(13,3,4))
+        shuffle(self.cards)
 
     def rm_card(self):
         if len(self.cards) == 0:
             #returns None if there are no more cards in the deck list
             return
         return self.cards.pop()
-    def shuffle(self):
-        random.shuffle(self.deck)
+
 class Player:
     #player constructor:
     def __init__(self, name):
         self.points = 0
         self.hand = []
+        self.playedCards = []
         self.foot = []
+        self.footAccess = False
         self.name = name
 class Game:
     #game constructor:
@@ -75,7 +77,10 @@ class Game:
         name2 = input("Player Two Name: ")
         numberOfDecks = input("Number of Decks: ")
         self.deck = Deck(numberOfDecks)
+        self.train = []
         self.p1 = Player(name1)
         self.p2 = Player(name2)
 
-    def draw(self, player):
+    def deal_start(self):
+        #deals 11 cards from the deck and removes these cards from the deck
+        return [self.deck.rm_card() for i in range(11)]
