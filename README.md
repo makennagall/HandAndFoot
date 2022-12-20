@@ -20,8 +20,11 @@ discard: if player has the selected card in their hand (or foot) then remove it 
 
 switch to foot: if hand set is empty, change footAccess to True.
 
+end game: if a set contains 7 cards that are only value cards and a set contains 7 cards including a wild card and len(foot) == 0: end game
+
 play game:
-player determines whether they want to draw or pick up from the train.
+NOTES: need to figure out a way to keep track of what cards have been laid down in the round
+<br>player determines whether they want to draw or pick up from the train.
 if they want to pick up from the train and have 0 points prompt laying down cards
 check if cards they have to lay down is greater than round point minimum, if yes lay down, else reprompt pick up from train or draw
 <br>if points == 0
@@ -29,8 +32,20 @@ check if cards they have to lay down is greater than round point minimum, if yes
 <br>&emsp; give opportunity to add to sets
 <br>else:
 <br>&emsp; give opportunity to add to sets
+<br>if footAccess == False:
+<br>&emsp; check switch to foot
+<br>else:
+<br>&emsp; check end game
+<br>if footAccess == True:
+<br>&emsp; if len(foot) == 0 and no natural and unnatural:
+<br>&emsp; prompt undo of plays
 <br>prompt discard
+<br>if footAccess == False:
+<br>&emsp; check switch to foot
+<br>else:
+<br>&emsp; check end game
 <br>change player
+
 
 Sources:
 https://thecleverprogrammer.com/2020/10/04/card-game-with-python/
