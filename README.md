@@ -25,10 +25,10 @@ player determines whether they want to draw or pick up from the train.
 if they want to pick up from the train and have 0 points prompt laying down cards
 check if cards they have to lay down is greater than round point minimum, if yes lay down, else reprompt pick up from train or draw
 <br>if points == 0
-<br>&emsp give opportunity to lay down
-<br>&emsp give opportunity to add to sets
+<br>&emsp; give opportunity to lay down
+<br>&emsp; give opportunity to add to sets
 <br>else:
-<br>&emsp give opportunity to add to sets
+<br>&emsp; give opportunity to add to sets
 <br>prompt discard
 <br>change player
 
