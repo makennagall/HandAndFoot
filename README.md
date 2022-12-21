@@ -2,7 +2,7 @@
 Implementation of the card game Hand and Foot
 
 NOTES:
-<br>need to figure out a way to keep track of what cards have been laid down in the round in order to implement undo
+<br>need to figure out a way to keep track of what cards have been laid down in the player's turn in order to implement undo
 <br>need to figure out how to do different rounds: potentially round class.
 
 <b>Card Class</b> contains a constructor and representation function. Each card has variables for the color of the card, the value of the card, and the number of points the card is worth.
