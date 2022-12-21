@@ -206,7 +206,7 @@ class Play:
         validMove = False
         while validMove == False:
             draw = input("Would you like to draw two cards (y/n): ")
-            if draw != 'n' and draw != 'y':
+            if 'n' not in draw and 'y' not in draw:
                 validMove = False
                 continue
             if draw == 'n':
@@ -227,7 +227,7 @@ class Play:
             else:
                 validMove = self.drawTwo()
         addSets = input("Would you like to add sets (y/n)? ")
-        while addSets != 'y' and addSets != 'n':
+        while 'y' not in addSets and 'n' not in addSets:
             addSets = input("Would you like to add sets (y/n)? ")
         if addSets == 'y':
             self.playSets()
@@ -249,14 +249,14 @@ class Play:
     def playSets(self):
         self.playSet()
         keepPlaying = input("Would you like to lay down more cards(y/n)? ")
-        while keepPlaying != 'y' and keepPlaying != 'n':
+        while 'y' not in keepPlaying and 'n' not in keepPlaying:
             keepPlaying = input("Would you like to lay down more cards(y/n)? ")
         while keepPlaying == 'y':
             self.playSet()
             self.player.updatePoints()
             print("You have " + str(self.player.points) + " points.")
             keepPlaying = input("Would you like to lay down more cards(y/n)? ")
-            while keepPlaying != 'y' and keepPlaying != 'n':
+            while 'y' not in keepPlaying and 'n' not in keepPlaying:
                 keepPlaying = input("Would you like to lay down more cards(y/n)? ")
 
     def discard(self):
@@ -448,6 +448,31 @@ class Play:
             self.player.hand = changeList
         else:
             self.player.foot = changeList
+def checks(self):
+    if self.player.footAccess == False:
+        len(if self.player.hand) == 0:
+            print("You are now in your foot")
+            self.player.footAccess == True
+    else:
+        if len(self.player.foot) == 0:
+            unnaturals, naturals = self.check_books()
+            if unnaturals >= 1 and naturals >= 1:
+                print("Round Over")
+
+def check_books(self):
+    unnaturals = 0
+    naturals = 0
+    for key in self.player.playedCards:
+        if len(self.player.playedCards[key]) >= 7:
+            wildPresent = False
+            for card in self.player.playedCards[key]:
+                if card.get_value() == '2' or card.get_value() == 'Joker':
+                    wildPresent = True
+            if wildPresent == True:
+                unnaturals += 1
+            else:
+                naturals += 1
+    return unnaturals, naturals
 
 
 
