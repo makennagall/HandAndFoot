@@ -33,7 +33,8 @@ class Card:
             return True
         else:
             return False
-
+    def get_value(self):
+        return self.values[self.value]
 class Deck:
     #constructor:
     def __init__(self, numDecks):
@@ -88,10 +89,10 @@ class Player:
     def __init__(self, name):
         self.points = 0
         self.hand = []
-        self.playedCards = []
+        self.playedCards = {}
         self.foot = []
         self.footAccess = False
-        self.name = name
+        self.name = str(name)
 
     #function that allows a Player to be printed
     def __repr__(self):
@@ -126,13 +127,13 @@ class Game:
         Round1.play_round()
         print(Round1)
         print("Round 2: ")
-        Round2 = Round(90, self.p1, self.p2)
+        Round2 = Round(90, self.p2, self.p1)
         Round2.play_round()
         print("Round 3: ")
         Round3 = Round(120, self.p1, self.p2)
         Round3.play_round()
         print("Round 4: ")
-        Round4 = Round(150, self.p1, self.p2)
+        Round4 = Round(150, self.p2, self.p1)
         Round4.play_round()
 class Round:
     def __init__(self, pointsNeeded, p1, p2):
@@ -145,34 +146,42 @@ class Round:
         #deals 11 cards from the deck and removes these cards from the deck
         self.p1.hand = [self.deck.rm_card() for i in range(11)]
         self.p1.foot = [self.deck.rm_card() for i in range(11)]
-        self.p1.points = 0
+        self.p1.points = 50
         self.p1.footAccess = False
         self.p1.playedCards = []
         print(self.p1)
         self.p2.hand = [self.deck.rm_card() for i in range(11)]
         self.p2.foot = [self.deck.rm_card() for i in range(11)]
-        self.p2.points = 0
+        self.p2.points = 50
         self.p2.footAccess = False
         self.p2.playedCards = []
         print(self.p2)
 
     def display_train(self):
         print("Current Train: ")
-        for card in self.train:
-            print(card)
+        for num, card in enumerate(self.train):
+            print(str(num) + " " + str(card))
 
     def play_round(self):
         #each player has turns as long as no one goes out and the deck has cards in it
+        currPlayer = self.p1
         self.start_round()
-        print(self)
-        self.display_train()
-        play1 = Play(self.p1, self)
-        play1.play()
-        self.display_train()
-        print(self)
+        while True:
+            if str(input("If you would like to quit the game press q, otherwise hit enter")) == str('q'):
+                break
+            print(self)
+            self.display_train()
+            play1 = Play(currPlayer, self)
+            play1.play()
+            self.display_train()
+            print(self)
+            if currPlayer == self.p1:
+                currPlayer = self.p2
+            else:
+                currPlayer = self.p1
 
     def __repr__(self):
-        v = "Player One has " + str(self.p1.points) + " points in this round. \nPlayer Two has " + str(self.p2.points) + " points in this round.\nThe deck contains " + str(self.deck.num_in_deck()) + " cards.\nThe train contains " + str(len(self.train)) + " cards."
+        v = self.p1.name + " has " + str(self.p1.points) + " points in this round. \n" + self.p2.name + " has " + str(self.p2.points) + " points in this round.\nThe deck contains " + str(self.deck.num_in_deck()) + " cards.\nThe train contains " + str(len(self.train)) + " cards."
         return v
 
 class Play:
@@ -186,23 +195,114 @@ class Play:
         self.round = round
 
     def play(self):
+        print(self.player)
+        validMove = False
+        while validMove == False:
+            draw = input("Would you like to draw two cards (y/n): ")
+            if draw == 'n':
+                validMove = self.pickUpTrain()
+            else:
+                validMove = self.drawTwo()
         validDiscard = False
         while validDiscard == False:
             validDiscard = self.discard()
     def discard(self):
         discardString = input("What card would you like to discard? ")
         cardRemoved = False
-        for card in self.player.hand:
-            if card.checkEquivalence(discardString) == True:
-                self.round.train.append(card)
-                self.player.hand.remove(card)
-                cardRemoved = True
-                break
+        if self.player.footAccess == False:
+            for card in self.player.hand:
+                if card.checkEquivalence(discardString) == True:
+                    self.round.train.append(card)
+                    self.player.hand.remove(card)
+                    cardRemoved = True
+                    break
+        else:
+            for card in self.player.foot:
+                if card.checkEquivalence(discardString) == True:
+                    self.round.train.append(card)
+                    self.player.foot.remove(card)
+                    cardRemoved = True
+                    break
         if cardRemoved == True:
             return True
         else:
             return False
-    def 
+
+    def drawTwo(self):
+        newCard1 = self.round.deck.rm_card()
+        newCard2 = self.round.deck.rm_card()
+        print("New Cards: ")
+        print(newCard1)
+        print(newCard2)
+        if self.player.footAccess == False:
+            self.player.hand.append(newCard1)
+            self.player.hand.append(newCard2)
+
+        else:
+            self.player.foot.append(newCard1)
+            self.player.foot.append(newCard2)
+        return True
+
+    def pickUpTrain(self):
+        cardCount = 0
+        if self.player.points < self.round.pointsNeeded:
+            print("You do not have enough points.")
+            return False
+        if len(self.round.train) == 0:
+            print("The train is empty.")
+            return False
+        isValid = False
+        while isValid == False:
+            index = input("What index would you like to pick up the train from? ")
+            isValid = index.isdigit()
+            print(isValid)
+            if len(self.round.train) < int(index):
+                print("Index out of range. Try Again.")
+                isValid = False
+        index = int(index)
+        #If the player is trying to pick up the last card on the train:
+        if index == len(self.round.train) - 1:
+            if self.player.footAccess == False:
+                self.player.hand.append(self.round.train[index])
+                self.round.train.remove(self.round.train[index])
+            else:
+                self.player.foot.append(self.round.train[index])
+                self.round.train.remove(self.round.train[index])
+            return True
+        if str(self.round.train[index].value) == str(3):
+            print("You cannot pick up from a 3")
+            return False
+        if str(self.round.train[index].value) == str(2):
+            print("You cannot pick up from a 2")
+            return False
+        if str(self.round.train[index].value) == "Joker":
+            print("You cannot pick up from a Joker")
+            return False
+        if self.player.footAccess == False:
+            for card in self.player.hand:
+                if card.value == self.round.train[index].value:
+                    cardCount = cardCount + 1
+            if cardCount >= 2:
+                print("Taking from Train...")
+                for card in self.round.train[index:]:
+                    self.player.hand.append(card)
+                    self.round.train.remove(card)
+            else:
+                print("You do not have enough " + str(self.round.train[index].get_value()))
+                return False
+        else:
+            for card in self.player.foot:
+                if card.value == self.round.train[index].value:
+                    cardCount = cardCount + 1
+            if cardCount >= 2:
+                print("Taking from Train...")
+                for card in self.round.train[index:]:
+                    self.player.foot.append(card)
+                    self.round.train.remove(card)
+            else:
+                print("You do not have enough " + str(self.round.train[index].get_value()))
+                return False
+        return True
 
 
 game1 = Game()
