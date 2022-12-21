@@ -23,6 +23,16 @@ class Card:
     def __str__(self):
         v = self.colors[self.color] + " " + self.values[self.value]
         return v
+    #determines equivalence:
+    def checkEquivalence(self, aString):
+        if len(aString.split(' ')) != 2:
+            return False
+        stringColor = aString.split(' ')[0]
+        stringValue = aString.split(' ')[1]
+        if str(self.colors[self.color]) == stringColor and str((self.values[self.value])) == stringValue:
+            return True
+        else:
+            return False
 
 class Deck:
     #constructor:
@@ -111,13 +121,17 @@ class Game:
 
 
     def play_game(self):
+        print("Round 1: ")
         Round1 = Round(50, self.p1, self.p2)
         Round1.play_round()
         print(Round1)
+        print("Round 2: ")
         Round2 = Round(90, self.p1, self.p2)
         Round2.play_round()
+        print("Round 3: ")
         Round3 = Round(120, self.p1, self.p2)
         Round3.play_round()
+        print("Round 4: ")
         Round4 = Round(150, self.p1, self.p2)
         Round4.play_round()
 class Round:
@@ -142,22 +156,54 @@ class Round:
         self.p2.playedCards = []
         print(self.p2)
 
+    def display_train(self):
+        print("Current Train: ")
+        for card in self.train:
+            print(card)
+
     def play_round(self):
         #each player has turns as long as no one goes out and the deck has cards in it
         self.start_round()
         print(self)
+        self.display_train()
+        play1 = Play(self.p1, self)
+        play1.play()
+        self.display_train()
+        print(self)
+
     def __repr__(self):
         v = "Player One has " + str(self.p1.points) + " points in this round. \nPlayer Two has " + str(self.p2.points) + " points in this round.\nThe deck contains " + str(self.deck.num_in_deck()) + " cards.\nThe train contains " + str(len(self.train)) + " cards."
         return v
 
 class Play:
-    def __init__(self, player):
+    def __init__(self, player, round):
         self.player = player #should be of type player
         if self.player.footAccess == False:
             self.initialHand = self.player.hand
         else:
             self.initialHand = self.player.foot
         self.initialLaid = self.player.playedCards
+        self.round = round
+
+    def play(self):
+        validDiscard = False
+        while validDiscard == False:
+            validDiscard = self.discard()
+    def discard(self):
+        discardString = input("What card would you like to discard? ")
+        cardRemoved = False
+        for card in self.player.hand:
+            if card.checkEquivalence(discardString) == True:
+                self.round.train.append(card)
+                self.player.hand.remove(card)
+                cardRemoved = True
+                break
+        if cardRemoved == True:
+            return True
+        else:
+            return False
+    def 
+
 
 game1 = Game()
 game1.play_game()
