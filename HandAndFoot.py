@@ -290,10 +290,12 @@ class Play:
         if self.player.footAccess == False:
             self.player.hand.append(newCard1)
             self.player.hand.append(newCard2)
+            self.initialHand = self.player.hand.copy()
 
         else:
             self.player.foot.append(newCard1)
             self.player.foot.append(newCard2)
+            self.initialFoot = self.player.foot.copy()
         return True
 
     def pickUpTrain(self):
@@ -403,7 +405,7 @@ class Play:
                 cardList.append(card)
                 #changeList.remove(card)
                 numJokers += 1
-        numTwos
+        numTwos = 0
         print("finding twos")
         for card in changeList:
             if numTwos == twos:
@@ -415,13 +417,14 @@ class Play:
                 #changeList.remove(card)
                 numTwos += 1
         print("numInPlayerCards: " + str(numInPlayerCards))
-        print("numWilds: " + str(numWilds))
-        print("wilds: " + str(wilds))
         if numInPlayerCards < number:
             print("You do not have that many " + value + "s.")
             return False
-        if numWilds < wilds:
-            print("You do not have that many wilds.")
+        if numJokers < jokers:
+            print("You do not have that many jokers.")
+            return False
+        if numTwos < twos:
+            print("You do not have that many twos.")
             return False
         if value not in self.player.playedCards:
             self.player.playedCards[value] = []
