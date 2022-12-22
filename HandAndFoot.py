@@ -107,8 +107,8 @@ class Player:
     def __repr__(self):
         playerCards = ''
         stringPlayed = ''
-        for card in self.playedCards:
-            stringPlayed = stringPlayed + str(card) + ", "
+        for value in self.playedCards:
+            stringPlayed = stringPlayed + str(value) + ": " + str(len(self.playedCards[value])) + ", "
         if self.footAccess == False:
             for card in self.hand:
                 playerCards = playerCards + str(card) + ', '
@@ -120,28 +120,26 @@ class Player:
         return(v)
     def sort_hand(self):
         self.hand.sort(key=lambda x: x.value)
-        print(self.hand)
     def sort_foot(self):
         self.foot.sort(key=lambda x: x.value)
-        print(self.foot)
     def updatePoints(self):
         points = 0
         for key in self.playedCards:
             for card in self.playedCards[key]:
                 points = points + int(card.get_points())
         self.points =  points
-    def display_hand(self):
-        displayString = ''
-        for number, card in enumerate(self.hand):
-            displayString = displayString + card
-            if number < len(self.hand) - 1:
-                displayString = displayString + ", "
-        print(displayString)
     def display_foot(self):
         displayString = ''
-        for number, card in enumerate(self.foot):
-            displayString = displayString + card
-            if number < len(self.foot) - 1:
+        for num, card in enumerate(self.foot):
+            displayString = displayString + str(card)
+            if num < len(self.foot) - 1:
+                displayString = displayString + ", "
+        print(displayString)
+    def display_hand(self):
+        displayString = ''
+        for num, card in enumerate(self.hand):
+            displayString = displayString + str(card)
+            if num < len(self.hand) - 1:
                 displayString = displayString + ", "
         print(displayString)
 
@@ -195,8 +193,11 @@ class Round:
 
     def display_train(self):
         print("Current Train: ")
-        for num, card in enumerate(self.train):
-            print(str(num) + " " + str(card))
+        if len(self.train) == 0:
+            print("Empty")
+        else:
+            for num, card in enumerate(self.train):
+                print(str(num) + " " + str(card))
 
     def play_round(self):
         #each player has turns as long as no one goes out and the deck has cards in it
@@ -205,8 +206,7 @@ class Round:
         GameOver = False
         while GameOver == False:
             #Clear the screen:
-            os.system("clear")
-            self.display_train()
+            #os.system("clear")
             newPlay = Play(currPlayer, self)
             GameOver = newPlay.play()
             currPlayer.updatePoints()
@@ -237,53 +237,57 @@ class Play:
         validMove = False
         while validMove == False:
             draw = input("Would you like to draw two cards (y/n): ")
-            if 'n' not in draw and 'y' not in draw:
+            if not('n' in str(draw)) and not('y'in str(draw)):
+                print("Please enter either y or n. You entered: " + str(draw))
                 validMove = False
                 continue
-            if draw == 'n':
+            if 'n' in str(draw):
                 if self.player.points < self.round.pointsNeeded:
                     print("You must lay down cards to pick up from the train")
                     self.playSets()
                     self.player.updatePoints()
-                    if self.player.points > self.round.pointsNeeded:
-                        validMove = self.pickUpTrain()
+                if self.player.points > self.round.pointsNeeded:
+                    validMove = self.pickUpTrain()
+                else:
+                    print("You still do not have enough points.")
+                    if self.player.footAccess == False:
+                        self.player.hand = self.initialHand
                     else:
-                        print("You still do not have enough points.")
-                        if self.player.footAccess == False:
-                            self.player.hand = self.initialHand
-                        else:
-                            self.player.foot = self.initialHand
-                        self.player.playedCards = self.initialLaid
-                        validMove = self.drawTwo()
+                        self.player.foot = self.initialHand
+                    self.player.playedCards = self.initialLaid
+                    validMove = self.drawTwo()
             else:
                 validMove = self.drawTwo()
         addSets = input("Would you like to add sets (y/n)? ")
         while 'y' not in addSets and 'n' not in addSets:
             addSets = input("Would you like to add sets (y/n)? ")
-        if addSets == 'y':
+        if str('y') in str(addSets):
             self.playSets()
-        self.player.updatePoints()
-        if self.player.points < self.round.pointsNeeded:
-            print("You do not have enough points to lay down.")
-            if self.player.footAccess == False:
-                print(self.initialHand)
-                self.player.hand = self.initialHand
-            else:
-                self.player.foot = self.initialFoot
-            self.player.playedCards = self.initialLaid
             self.player.updatePoints()
-            print(self.player)
+            if self.player.points < self.round.pointsNeeded:
+                print("You do not have enough points to lay down.")
+                if self.player.footAccess == False:
+                    self.player.hand = self.initialHand
+                    self.player.display_hand()
+                else:
+                    self.player.foot = self.initialFoot
+                    self.player.display_foot()
+                self.player.playedCards = self.initialLaid
+                self.player.updatePoints()
             #Game over = True
-            if self.checks() == True:
-                return True
+        if self.checks() == True:
+            return True
         validDiscard = False
         while validDiscard == False:
             validDiscard = self.discard()
+        print("Discarded")
         #Game over = True
         if self.checks() == True:
+            print("Game Over")
             return True
         else:
         #Game over = False
+            print("Game Not Over")
             return False
 
     def playSets(self):
@@ -304,17 +308,19 @@ class Play:
         discardString = input("What card would you like to discard? ")
         cardRemoved = False
         if self.player.footAccess == False:
-            for card in self.player.hand:
+            for num, card in enumerate(self.player.hand):
                 if card.checkEquivalence(discardString) == True:
+                    print(card)
                     self.round.train.append(card)
-                    self.player.hand.remove(card)
+                    print("removing card at " + str(num))
+                    self.player.hand.pop(num)
                     cardRemoved = True
                     break
         else:
-            for card in self.player.foot:
+            for num, card in enumerate(self.player.foot):
                 if card.checkEquivalence(discardString) == True:
                     self.round.train.append(card)
-                    self.player.foot.remove(card)
+                    self.player.foot.pop(num)
                     cardRemoved = True
                     break
         if cardRemoved == True:
@@ -332,11 +338,13 @@ class Play:
             self.player.hand.append(newCard1)
             self.player.hand.append(newCard2)
             self.player.sort_hand()
+            self.player.display_hand()
             self.initialHand = self.player.hand.copy()
         else:
             self.player.foot.append(newCard1)
             self.player.foot.append(newCard2)
             self.player.sort_foot()
+            self.player.display_foot()
             self.initialFoot = self.player.foot.copy()
         return True
 
@@ -384,6 +392,7 @@ class Play:
                     self.player.hand.append(card)
                     self.round.train.remove(card)
                 self.player.sort_hand()
+                self.player.display_hand()
             else:
                 print("You do not have enough " + str(self.round.train[index].get_value()))
                 return False
@@ -397,6 +406,7 @@ class Play:
                     self.player.foot.append(card)
                     self.round.train.remove(card)
                 self.player.sort_foot()
+                self.player.display_foot()
             else:
                 print("You do not have enough " + str(self.round.train[index].get_value()))
                 return False
@@ -418,37 +428,38 @@ class Play:
         number = int(number)
         jokers = int(jokers)
         twos = int(twos)
-        numInPlayerCards = 0
         cardList = []
+        newHF = []
         if str(value) == str(3):
             print("You cannot make a set of 3s")
             return False
         if self.player.footAccess == False:
-            changeList = self.player.hand
+            changeList = self.player.hand.copy()
         else:
-            changeList = self.player.foot
-        for card in changeList:
-            if numInPlayerCards == number:
-                break
-            if card.get_value() == value:
-                cardList.append(card)
-                #changeList.remove(card)
-                numInPlayerCards += 1
+            changeList = self.player.foot.copy()
+        numInPlayerCards = 0
         numJokers = 0
-        for card in changeList:
-            if numJokers == jokers:
-                break
-            if card.get_value() == 'Joker':
-                cardList.append(card)
-                numJokers += 1
         numTwos = 0
         for card in changeList:
-            if numTwos == twos:
-                break
-            if card.get_value() == '2':
-                cardList.append(card)
-                numTwos += 1
-        print("numInPlayerCards: " + str(numInPlayerCards))
+            added = False
+            if numInPlayerCards != number:
+                if card.get_value() == value:
+                    cardList.append(card)
+                    numInPlayerCards += 1
+                    added = True
+            if numJokers != jokers:
+                if card.get_value() == 'Joker':
+                    cardList.append(card)
+                    numJokers += 1
+                    added = True
+            if numTwos != twos:
+                if card.get_value() == '2':
+                    cardList.append(card)
+                    numTwos += 1
+                    added = True
+            if added == False:
+                newHF.append(card)
+
         if numInPlayerCards < number:
             print("You do not have that many " + value + "s.")
             return False
@@ -472,14 +483,14 @@ class Play:
             print("You do not have enough value cards for your number of wilds")
             return False
         #update player's playedCards and hand or foot
-        print("Successfully played cards")
-        for card in cardList:
-            changeList.remove(card)
         self.player.playedCards[value] = newList
         if self.player.footAccess == False:
-            self.player.hand = changeList
+            self.player.hand = newHF
+            self.player.display_hand()
         else:
-            self.player.foot = changeList
+            self.player.foot = newHF
+            self.player.display_foot()
+
     def checks(self):
         if self.player.footAccess == False:
             if len(self.player.hand) == 0:
@@ -490,11 +501,11 @@ class Play:
                 unnaturals, naturals = self.check_books()
                 if unnaturals >= 1 and naturals >= 1:
                     #Game Over = True
-                    return True
                     print("Round Over")
+                    return True
                 else:
                     print("You need to retain cards in your hand in order to discard.")
-                    self.player.foot = self.initialHand
+                    self.player.foot = self.initialFoot
                     self.player.playedCards = self.initialLaid
                     print("Your initial hand and played cards have been restored.")
         #Game over = False
