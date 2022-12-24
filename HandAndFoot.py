@@ -114,7 +114,10 @@ class Player:
         playerCards = ''
         stringPlayed = ''
         for value in self.playedCards:
-            stringPlayed = stringPlayed + str(value) + ": " + str(len(self.playedCards[value])) + ", "
+            stringPlayed = stringPlayed + str(value) + ": "
+            for card in self.playedCards[value]:
+                stringPlayed = stringPlayed + str(card)
+            stringPlayed = stringPlayed + "\n"
         for card in self.hand:
             playerCards = playerCards + str(card) + ', '
         v = self.name + " has " + str(self.points) + " points. \nTheir hand contains the cards:\n" + playerCards + "and they have played the cards:\n " + stringPlayed
@@ -463,7 +466,8 @@ class Play:
             return False
         if value not in self.player.playedCards:
             self.player.playedCards[value] = []
-        newList = self.player.playedCards[value] + cardList
+        for card in cardList:
+            newList = self.player.playedCards[value].append(card)
         if len(newList) < 3:
             print("Not enough cards in set")
             return False
@@ -502,11 +506,6 @@ class Play:
                     print("Your initial hand and played cards have been restored.")
         #Game over = False
         return False
-
-
-
-
-
 
 game1 = Game()
 game1.play_game()
