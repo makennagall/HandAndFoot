@@ -118,11 +118,13 @@ class Player:
     #function that allows a Player to be printed
     def __repr__(self):
         playerCards = ''
-        stringPlayed = ''
+        stringPlayed = 'Value\tCardsPlayed\n'
         for value in self.playedCards:
-            stringPlayed = stringPlayed + str(value) + ": "
-            for card in self.playedCards[value]:
+            stringPlayed = stringPlayed + str(value) + "\t"
+            for num, card in enumerate(self.playedCards[value]):
                 stringPlayed = stringPlayed + str(card)
+                if num < len(self.playedCards[value]) - 1:
+                    stringPlayed = stringPlayed + ", "
             stringPlayed = stringPlayed + "\n"
         for value in self.hand:
             if len(self.hand[value]) > 0:
@@ -155,6 +157,17 @@ class Player:
                         playerCards = playerCards + ", "
                 playerCards = playerCards + "\n"
         return playerCards
+
+    def display_played(self):
+        stringPlayed = 'Value\tCardsPlayed\n'
+        for value in self.playedCards:
+            stringPlayed = stringPlayed + str(value) + "\t"
+            for num, card in enumerate(self.playedCards[value]):
+                stringPlayed = stringPlayed + str(card)
+                if num < len(self.playedCards[value]) - 1:
+                    stringPlayed = stringPlayed + ", "
+            stringPlayed = stringPlayed + "\n"
+        return stringPlayed
     #Used to calculate points including points from books and negatives at the end of the round:
     def calculatePoints(self):
         totalPoints = 0
@@ -291,6 +304,7 @@ class Play:
     #MAIN Function:
     def play(self):
         print(self.player)
+        self.playable_points()
         self.round.display_train()
         validMove = False
         while validMove == False:
@@ -302,26 +316,59 @@ class Play:
             if 'n' in str(draw):
                 if self.player.points < self.round.pointsNeeded:
                     print("You must lay down cards to pick up from the train")
-                    self.playSets()
+                    autoplay = input("Would you like to autoplay (y/n)")
+                    while not('n' in str(autoplay)) and not('y'in str(autoplay)):
+                        print("Please enter either y or n. You entered: " + str(autoplay))
+                        autoplay = input("Would you like to autoplay (y/n)?")
+                    if 'y' in autoplay:
+                        self.autoLayDown()
+                        moreCards = input("Would you like to lay down more cards (y/n)?")
+                        while not('n' in str(moreCards)) and not('y'in str(moreCards)):
+                            print("Please enter either y or n. You entered: " + str(moreCards))
+                            moreCards = input("Would you like to lay down more cards (y/n)?")
+                    else:
+                        moreCards = 'y'
+                    if 'y' in moreCards:
+                        self.playSets()
                     self.player.updatePoints()
-                if self.player.points > self.round.pointsNeeded:
-                    validMove = self.pickUpTrain()
+                if self.player.points >= self.round.pointsNeeded:
+                    validMove = self.player_pickUpTrain()
+                    if validMove == False:
+                        self.player.hand = self.initialHand
+                        #print(self.player.display_hand())
+                        self.player.playedCards = self.initialLaid
+                        self.player.updatePoints()
                 else:
-                    print("You still do not have enough points.")
+                    print("You do not have enough points to lay down. You only have " + str(self.player.points) + " points.")
                     self.player.hand = self.initialHand
+                    #print(self.player.display_hand())
                     self.player.playedCards = self.initialLaid
-                    validMove = self.drawTwo()
+                    self.player.updatePoints()
+                    validMove = False
             else:
                 validMove = self.drawTwo()
-        print("Playable points: " + str(self.playable_points()))
+        playableList, playablePoints = self.playable_points()
+        print("Playable points: " + str(playablePoints))
         addSets = input("Would you like to add sets (y/n)? ")
         while 'y' not in addSets and 'n' not in addSets:
             addSets = input("Would you like to add sets (y/n)? ")
         if str('y') in str(addSets):
-            self.playSets()
+            autoplay = input("Would you like to autoplay (y/n)")
+            while not('n' in str(autoplay)) and not('y' in str(autoplay)):
+                autoplay = input("Would you like to autoplay (y/n)?")
+            if 'y' in autoplay:
+                self.autoLayDown()
+                moreCards = input("Would you like to lay down more cards (y/n)?")
+                while not('n' in str(moreCards)) and not('y'in str(moreCards)):
+                    print("Please enter either y or n. You entered: " + str(moreCards))
+                    moreCards = input("Would you like to lay down more cards (y/n)?")
+            else:
+                moreCards = 'y'
+            if 'y' in moreCards:
+                self.playSets()
             self.player.updatePoints()
             if self.player.points < self.round.pointsNeeded:
-                print("You do not have enough points to lay down.")
+                print("You do not have enough points to lay down. You only have " + str(self.player.points) + " points, and you need " + str(self.round.pointsNeeded))
                 self.player.hand = self.initialHand
                 print(self.player.display_hand())
                 self.player.playedCards = self.initialLaid
@@ -331,7 +378,7 @@ class Play:
             return True
         validDiscard = False
         while validDiscard == False:
-            validDiscard = self.discard()
+            validDiscard = self.player_discard()
         print("Discarded")
         #Game over = True
         if self.checks() == True:
@@ -348,6 +395,7 @@ class Play:
         while 'y' not in keepPlaying and 'n' not in keepPlaying:
             keepPlaying = input("Would you like to lay down more cards(y/n)? ")
         while keepPlaying == 'y':
+            self.playable_points()
             self.checks()
             self.playSet()
             self.player.updatePoints()
@@ -355,9 +403,13 @@ class Play:
             keepPlaying = input("Would you like to lay down more cards(y/n)? ")
             while 'y' not in keepPlaying and 'n' not in keepPlaying:
                 keepPlaying = input("Would you like to lay down more cards(y/n)? ")
+        self.checks()
     #Allows the player to discard one card at the end of the turn:
-    def discard(self):
+    def player_discard(self):
         discardString = input("What card would you like to discard? ")
+        return self.discard(discardString)
+
+    def discard(self, discardString):
         cardRemoved = False
         if len(discardString.split(' ')) != 2:
             return False
@@ -372,6 +424,7 @@ class Play:
                         cardRemoved = True
                         break
         else:
+            print(self.player.display_hand())
             return False
         if cardRemoved == True:
             return True
@@ -390,8 +443,7 @@ class Play:
         self.initialHand = self.player.hand.copy()
         return True
     #Allows the player to pick up the train if they have two of that same card in their hand:
-    def pickUpTrain(self):
-        cardCount = 0
+    def player_pickUpTrain(self):
         if self.player.points < self.round.pointsNeeded:
             print("You do not have enough points.")
             return False
@@ -403,6 +455,16 @@ class Play:
             index = input("What index would you like to pick up the train from? ")
             isValid = index.isdigit()
         index = int(index)
+        return self.pickUpTrain(index)
+
+    def pickUpTrain(self, index):
+        cardCount = 0
+        if self.player.points < self.round.pointsNeeded:
+            print("You do not have enough points.")
+            return False
+        if len(self.round.train) == 0:
+            print("The train is empty.")
+            return False
         if len(self.round.train) < index:
             print("Index out of range. Try Again.")
             return False
@@ -420,33 +482,40 @@ class Play:
         if str(self.round.train[index].get_value()) == "Joker":
             print("You cannot pick up from a Joker")
             return False
-        for card in self.initialHand:
-            if card.value == self.round.train[index].value:
-                cardCount = cardCount + 1
-        if cardCount >= 2:
+        if len(self.initialHand[self.round.train[index].get_value()]) >= 2:
             print("Taking from Train...")
+
             for card in self.round.train[index:]:
                 self.player.hand[card.get_value()].append(card)
-                self.round.train.remove(card)
+
+            self.round.train = self.round.train[:index]
+            print("Updated Train: ")
+            self.round.display_train()
+            print()
+            print("Updated Hand:")
             print(self.player.display_hand())
+            print()
+            return True
         else:
-            print("You do not have enough " + str(self.round.train[index].get_value()))
+            print(self.initialHand)
+            print("You do not have enough " + str(self.round.train[index].get_value()) + " You only have " + str(len(self.initialHand[self.round.train[index].get_value()])))
             return False
-        return True
+
     #Allows the player to play cards of a single value and add wilds to that set:
     def playSet(self):
         value = input("What card value would you like to lay down? ")
-        number = input("How many of that value would you like to lay down? ")
-        jokers = input("How many jokers would you like to lay down with your set? ")
-        twos = input("How many twos would you like to lay down with your set? ")
         if value not in self.player.hand:
             print("invalid input: did not enter a valid value")
+            return False
+        number = input("How many of that value would you like to lay down? ")
         if number.isdigit() == False:
             print("invalid input: did not enter a number")
             return False
+        jokers = input("How many jokers would you like to lay down with your set? ")
         if jokers.isdigit() == False:
             print("invalid input: did not enter a number")
             return False
+        twos = input("How many twos would you like to lay down with your set? ")
         if twos.isdigit() == False:
             print("invalid input: did not enter a number")
             return False
@@ -483,7 +552,6 @@ class Play:
             newList = self.player.playedCards[value]
             for card in addedCards:
                 newList.append(card)
-
         if len(newList) < 3:
             print("Not enough cards in set")
             return False
@@ -498,12 +566,13 @@ class Play:
         self.player.playedCards[value] = newList
         self.player.hand = newHand
         print(self.player.display_hand())
+        return True
     #Checks if the player goes into their foot or if the round is over:
     def checks(self):
         if self.player.footAccess == False:
             noHandCards = True
             for value in self.player.hand:
-                if len(self.player.hand[value]) != True:
+                if len(self.player.hand[value]) != 0:
                     noHandCards = False
                     break
                 #If they player has 0 cards in their hand, then their hand is set equal to their foot.
@@ -535,41 +604,140 @@ class Play:
         points = 0
         wilds = 0
         twoList = []
-        greaterThree = 0
         wildList = []
+        unplayable = []
+        playable = []
+        #Keeps track of how many threes could be played with the cards:
+        unmatchedWithThrees = 0
         for value in self.player.hand:
             if value == "2" or value == "Joker":
                 if len(self.player.hand[value]) > 0:
                     for card in self.player.hand[value]:
                         wildList.append(card)
             elif value == '3':
+                for card in self.player.hand['3']:
+                    unplayable.append(card)
                 continue
             else:
+                #Can add cards to an already played set
+                if value in self.player.playedCards and len(self.player.hand[value]) > 0:
+                    newPoints = self.player.hand[value][0].get_points() * len(self.player.hand[value])
+                    for card in self.player.hand[value]:
+                        playable.append(card)
+                    print("Add " + NumEng[len(self.player.hand[value])] +  " " + str(value) + "s to your played cards.")
+                    points += newPoints
                 #Can lay down set of cards:
-                if len(self.player.hand[value]) >= 3:
-                    greaterThree += 1
+                elif len(self.player.hand[value]) >= 3:
+                    unmatchedWithThrees += (len(self.player.hand[value]) - 1)
                     newPoints = (self.player.hand[value][0].get_points() * len(self.player.hand[value]))
                     print(NumEng[len(self.player.hand[value])] +  " " + str(value) + "s to add " + str(newPoints) + " points.")
+                    for card in self.player.hand[value]:
+                        playable.append(card)
                     points += newPoints
                 elif len(self.player.hand[value]) == 2:
                     twoList.append(self.player.hand[value][0])
+                else:
+                    for card in self.player.hand[value]:
+                        unplayable.append(card)
+
         twoList.sort(key=lambda x: x.point, reverse=True)
         wildList.sort(key=lambda x: x.point, reverse=True)
         while len(wildList) > 0 and len(twoList) > 0:
             newPoints = (twoList[0].get_points() * 2)
-            print("Points from twoList: " + str(newPoints))
             newPoints += wildList[0].get_points()
             print("Two " + twoList[0].get_value() + "s and one " + wildList[0].get_value() + " to add " + str(newPoints) + " points.")
+            for card in self.player.hand[twoList[0].get_value()]:
+                playable.append(card)
+
             points += newPoints
-            wildList.pop(0)
+            playable.append(wildList.pop(0))
             twoList.pop(0)
         if len(wildList) > 0:
-            if greaterThree > 0:
-                for card in wildList:
-                    newPoints = card.get_points()
-                    print("Play " + card.get_value() + " with other set to add " + str(newPoints) + " points.")
-                    points += newPoints
-        return points
+            wildsInSet = 0
+            if self.player.points > 0:
+                for value in self.player.playedCards:
+                    for card in self.player.playedCards[value]:
+                        if card.get_value() == '2' or card.get_value() == 'Joker':
+                            wildsInSet += 1
+                    if wildsInSet < len(self.player.playedCards[value]):
+                        unmatchedWithThrees += (len(self.player.playedCards[value]) - wildsInSet - 1)
+
+        while len(wildList) > 0 and unmatchedWithThrees > 0:
+            newPoints = wildList[0].get_points()
+            print("Play " + wildList[0].get_value() + " with other set to add " + str(newPoints) + " points.")
+            points += newPoints
+            unmatchedWithThrees -= 1
+            wildList.pop(0)
+        for card in wildList:
+            unplayable.append(card)
+        if len(twoList) > 0:
+            for type in twoList:
+                for card in self.player.hand[type.get_value()]:
+                    unplayable.append(card)
+
+        unplayString = ''
+        for num, card in enumerate(unplayable):
+            unplayString = unplayString + str(card)
+            if num < len(unplayable) - 1:
+                unplayString = unplayString + ', '
+        print("You cannot play the cards: " + unplayString)
+        print()
+        return playable, points
+
+    def autonomous_play(self):
+        playable = self.playable_points()
+        if playable >= self.round.pointsNeeded:
+            canPlay = True
+        else:
+            canPlay = False
+        trainPickedUp = False
+        #Determine whether or not to pick up the train:
+        if canPlay == True:
+            for index, card in enumerate(self.round.train):
+                if len(self.player.hand[value]) >= 2:
+                    threes = 0
+                    others = 0
+                    for card in self.round.train[index:]:
+                        if card.get_value == '3':
+                            threes += 1
+                        else:
+                            others += 1
+                    if others >= threes:
+                        self.pickUpTrain(index)
+                        pickedUpTrain = True
+                        break
+        else:
+            self.drawTwo()
+
+    def autoLayDown(self):
+        newHand = self.player.hand.copy()
+        print("Autoplaying these cards except unassigned wilds:")
+        playable, points = self.playable_points()
+        if points < self.round.pointsNeeded:
+            print("You do not have enough playable points to lay down.")
+            print()
+            return False
+        for num, card in enumerate(playable):
+            #If a 2 or joker is in the list, add it to the value before (because it will be a set of 2)
+            if card.get_value() == '2' or card.get_value() == 'Joker':
+                self.player.playedCards[playable[num-1].get_value()].append(card)
+                newHand[card.get_value()].remove(card)
+            else:
+                if not (card.get_value() in self.player.playedCards):
+                    self.player.playedCards[card.get_value()] = []
+                self.player.playedCards[card.get_value()].append(card)
+                newHand[card.get_value()].remove(card)
+
+        self.player.hand = newHand
+        print("Updated Hand:")
+        print(self.player.display_hand())
+        print()
+        print("Updated Played Cards:")
+        print(self.player.display_played())
+        print()
+        playable, points = self.playable_points()
+
+
 
 
 game1 = Game()
